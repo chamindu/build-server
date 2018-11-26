@@ -1,0 +1,50 @@
+version: '3'
+services:
+    jenkins:
+        build:
+            context: jenkins
+        image: wt-jenkins
+        volumes:
+            - jenkins-home:/var/jenkins_home
+            - /var/run/docker.sock:/var/run/docker.sock
+        networks:
+            - buildnet
+        ports:
+            - "8080:8080"
+            - "50000:50000"
+    sonarqube:
+        image: library/sonarqube
+        networks:
+            - buildnet
+        ports:
+            - "9000:9000"
+            - "9092:9092"
+        environment:
+            - SONARQUBE_JDBC_URL=jdbc:postgresql://postgres:5432/sonar
+        volumes: 
+            - sonarqube-conf:/opt/sonarqube/conf
+            - sonarqube-data:/opt/sonarqube/data
+            - sonarqube-extensions:/opt/sonarqube/extensions
+            - sonarqube-bundled-plugins:/opt/sonarqube/lib/bundled-plugins
+    postgres:
+        image: postgres
+        networks:
+            - buildnet
+        environment:
+            - POSTGRES_USER=sonar
+            - POSTGRES_PASSWORD=sonar
+        volumes:
+            - postgresql:/var/lib/postgresql
+            - postgresql-data:/var/lib/postgresql/data
+volumes:
+    jenkins-home:
+    sonarqube-conf:
+    sonarqube-data:
+    sonarqube-extensions:
+    sonarqube-bundled-plugins:
+    postgresql:
+    postgresql-data:
+networks:
+    buildnet:
+        driver: bridge
+
